@@ -1,9 +1,7 @@
 package dataPackage;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 
 public class Trainer
 {
@@ -17,6 +15,7 @@ public class Trainer
     String [] values;
 
     public static String [] lines = new String[totalData];
+    public static List<String> linesList;
 
     ArrayList<Iris> data;
 
@@ -39,6 +38,8 @@ public class Trainer
                 i++;
             }
 
+            linesList =  Arrays.asList(lines);
+
 
         }catch(IOException e)
         {
@@ -47,11 +48,13 @@ public class Trainer
 
         int testData = totalData/folds;
 
-        Random rand = new Random();
+        //Random rand = new Random();
+
+        //int count = 0;
 
         for(int i=0;i<folds;i++)
         {
-            for(int j=0;j<testData;j++)
+            /*for(int j=0;j<testData;j++)
             {
                 int num;
 
@@ -62,8 +65,23 @@ public class Trainer
 
                 isTestData[i][num] = true;
 
+            }*/
+
+            Collections.shuffle(linesList);
+
+            /*for(String s1: linesList)
+            {
+                System.out.println(s1);
+            }*/
+
+            for(int j=i*totalData/folds;j<totalData/folds*(i+1);j++)
+            {
+                isTestData[i][j] = true;
+                //count++;
             }
         }
+
+        //System.out.println(count);
 
     }
 
@@ -75,7 +93,7 @@ public class Trainer
 
             data = new ArrayList<>();
 
-            for(String s: lines)
+            for(String s: linesList)
             {
                 if(!isTestData[z][i])
                 {
@@ -83,6 +101,8 @@ public class Trainer
 
                     Iris iris = new Iris(Double.parseDouble(values[0]),Double.parseDouble(values[1]),
                             Double.parseDouble(values[2]),Double.parseDouble(values[3]), values[4]);
+
+                    //System.out.println(iris);
 
                     data.add(iris);
                 }

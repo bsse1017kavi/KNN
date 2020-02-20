@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -14,7 +13,7 @@ public class Tester
 
     Iris [] distance = new Iris[Trainer.totalData-(Trainer.totalData/Trainer.folds)];
 
-    int [] classNameCount = new int[3];
+    int [] weightTotal = new int[3];
 
     double [] accuracy = new double[Trainer.folds];
 
@@ -51,9 +50,13 @@ public class Tester
     {
         Trainer trainer = new Trainer();
 
+        int count = 0;
+
         for(int z=0;z<Trainer.folds;z++)
         {
             double hit = 0;
+            double weight;
+            double eps = 1e-10;
 
             try
             {
@@ -61,6 +64,7 @@ public class Tester
                 ObjectInputStream istream = new ObjectInputStream(fin);
 
                 data = (ArrayList<Iris>) istream.readObject();
+                
 
                 for(int i=0;i<Trainer.lines.length;i++)
                 {
@@ -68,10 +72,10 @@ public class Tester
                     {
                         for(int l=0;l<3;l++)
                         {
-                            classNameCount[l] = 0;
+                            weightTotal[l] = 0;
                         }
 
-                        String [] values = Trainer.lines[i].split(",");
+                        String [] values = Trainer.linesList.get(i).split(",");
 
                         Iris iris = new Iris(Double.parseDouble(values[0]),Double.parseDouble(values[1]),
                                 Double.parseDouble(values[3]),Double.parseDouble(values[3]));
@@ -82,20 +86,50 @@ public class Tester
                         {
                             iris1.calculateDistance(iris);
                             distance[j] = iris1;
+                            //System.out.println(iris1.getDistance());
                             j++;
                         }
 
                         Arrays.sort(distance, new SortbyDistance());
 
+                        //System.out.println();
+
                         for(int l=0;l<k;l++)
                         {
-                            if(distance[l].getClassName().equals("Iris-setosa")) classNameCount[0]++;
-                            else if(distance[l].getClassName().equals("Iris-versicolor")) classNameCount[1]++;
-                            else classNameCount[2]++;
+                            weight = 1/(distance[l].getDistance()+eps);
+                            //weight = 1;
+
+                            if(distance[l].getClassName().equals("Iris-setosa"))
+                            {
+                                weightTotal[0]+=weight;
+                            }
+                            else if(distance[l].getClassName().equals("Iris-versicolor"))
+                            {
+                                weightTotal[1]+=weight;
+                            }
+                            else if (distance[l].getClassName().equals("Iris-virginica"))
+                            {
+                                weightTotal[2]+=weight;
+                            }
+
+                            /*if(distance[l].getClassName().equals("A"))
+                            {
+                                weightTotal[0]+=weight;
+                            }
+                            else if(distance[l].getClassName().equals("B"))
+                            {
+                                weightTotal[1]+=weight;
+                            }
+                            else if (distance[l].getClassName().equals("C"))
+                            {
+                                weightTotal[2]+=weight;
+                            }*/
+
+                            //System.out.println(distance[l].getClassName());
 
                         }
 
-                        int index = max(classNameCount);
+                        int index = max(weightTotal);
 
                         //System.out.println("index: "+index);
 
@@ -103,21 +137,27 @@ public class Tester
 
                         if(index==0)
                         {
-                            System.out.println("fold: "+z+" line: "+i+" Class by KNN: "+"Iris-setosa");
+                            //System.out.println("fold: "+z+" line: "+i+" Class by KNN: "+"Iris-setosa");
                             className = "Iris-setosa";
+                            //className = "A";
                         }
 
                         else if(index==1)
                         {
-                            System.out.println("fold: "+z+" line: "+i+" Class by KNN: "+"Iris-versicolor");
+                            //System.out.println("fold: "+z+" line: "+i+" Class by KNN: "+"Iris-versicolor");
                             className = "Iris-versicolor";
+                            //className = "B";
                         }
 
                         else if(index==2)
                         {
-                            System.out.println("fold: "+z+" line: "+i+" Class by KNN: "+"Iris-virginica");
+                            //System.out.println("fold: "+z+" line: "+i+" Class by KNN: "+"Iris-virginica");
                             className = "Iris-virginica";
+                            //className = "C";
                         }
+
+                        //System.out.println(className);
+                        //count++;
 
 
                         if(values[4].equals(className))
@@ -150,6 +190,8 @@ public class Tester
             }
 
         }
+
+        //System.out.println(count);
 
         System.out.println("Accuracy: "+average(accuracy));
     }
